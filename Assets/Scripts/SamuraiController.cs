@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class SamuraiController : MonoBehaviour
 {
@@ -9,15 +10,21 @@ public class SamuraiController : MonoBehaviour
 
     [Header("Dash")]
     [SerializeField] private float dashDistance = 3f;
+    [SerializeField] private float dashDuration = 0.12f;
     [SerializeField] private int dashInvulnerableFrames = 2;
     [SerializeField] private float dashCooldown = 3f;
     [SerializeField] private RectTransform dashCooldownBar;
+    [SerializeField] private DashGhostTrail dashGhostTrail;
 
     [Header("Attack")]
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float attackConeAngle = 60f;
     [SerializeField] private Vector2 attackOriginOffset = new Vector2(0f, 0.5f);
-    [SerializeField] private LayerMask enemyLayer;
+    [SerializeField] private LayerMask enemyLayer = ~0;
+
+    [Header("Health")]
+    [SerializeField] private int maxHealth = 5;
+    private int currentHealth;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
@@ -26,6 +33,7 @@ public class SamuraiController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator animator;
+    private SpriteRenderer spriteRenderer;
     private InputSystem_Actions inputActions;
     private Vector2 moveInput;
     private int facingDirection = 1;
@@ -34,26 +42,34 @@ public class SamuraiController : MonoBehaviour
     private int invulnerableFrameCounter;
     private float dashCooldownTimer;
     private float dashBarFullWidth;
+    private bool isDashing;
 
-private void Awake()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         inputActions = new InputSystem_Actions();
+
+        currentHealth = maxHealth;
 
         if (groundCheckPoint == null)
             groundCheckPoint = transform.Find("GroundCheck");
         if (groundLayer == 0)
             groundLayer = LayerMask.GetMask("Ground");
-        if (enemyLayer == 0)
+        if (enemyLayer == 0 || enemyLayer == ~0)
             enemyLayer = LayerMask.GetMask("Enemy");
 
         if (dashCooldownBar != null)
             dashBarFullWidth = dashCooldownBar.sizeDelta.x;
+
+        if (dashGhostTrail != null)
+            dashGhostTrail.Initialize();
     }
 
-private void OnEnable()
+    private void OnEnable()
     {
+        if (inputActions == null) return;
         inputActions.Player.Enable();
         inputActions.Player.Move.performed += OnMove;
         inputActions.Player.Move.canceled += OnMove;
@@ -64,6 +80,7 @@ private void OnEnable()
 
     private void OnDisable()
     {
+        if (inputActions == null) return;
         inputActions.Player.Move.performed -= OnMove;
         inputActions.Player.Move.canceled -= OnMove;
         inputActions.Player.Jump.performed -= OnJump;
@@ -74,15 +91,16 @@ private void OnEnable()
 
     private void OnDestroy()
     {
-        inputActions.Dispose();
+        if (inputActions != null)
+            inputActions.Dispose();
     }
 
-private void OnMove(InputAction.CallbackContext ctx)
+    private void OnMove(InputAction.CallbackContext ctx)
     {
         moveInput = ctx.ReadValue<Vector2>();
     }
 
-private void OnJump(InputAction.CallbackContext ctx)
+    private void OnJump(InputAction.CallbackContext ctx)
     {
         if (isGrounded)
         {
@@ -95,14 +113,45 @@ private void OnJump(InputAction.CallbackContext ctx)
 
     private void OnDash(InputAction.CallbackContext ctx)
     {
-        if (dashCooldownTimer > 0f) return;
+        if (dashCooldownTimer > 0f || isDashing) return;
 
         float direction = moveInput.x != 0f ? Mathf.Sign(moveInput.x) : facingDirection;
-        Vector2 dashTarget = rb.position + Vector2.right * direction * dashDistance;
-        rb.MovePosition(dashTarget);
-        isInvulnerable = true;
-        invulnerableFrameCounter = dashInvulnerableFrames;
         dashCooldownTimer = dashCooldown;
+        isDashing = true;
+        isInvulnerable = true;
+        if (animator != null)
+            animator.SetTrigger("Dash");
+        StartCoroutine(DashCoroutine(direction));
+    }
+
+    private IEnumerator DashCoroutine(float direction)
+    {
+        Vector2 startPos = rb.position;
+        Vector2 endPos = startPos + Vector2.right * direction * dashDistance;
+        float elapsed = 0f;
+        float ghostInterval = dashDuration / 5f;
+        float nextGhostTime = ghostInterval;
+
+        while (elapsed < dashDuration)
+        {
+            elapsed += Time.fixedDeltaTime;
+            float t = Mathf.Clamp01(elapsed / dashDuration);
+            rb.MovePosition(Vector2.Lerp(startPos, endPos, t));
+
+            if (elapsed >= nextGhostTime && dashGhostTrail != null)
+            {
+                dashGhostTrail.SpawnGhost(rb.position, spriteRenderer.sprite, facingDirection == -1);
+                nextGhostTime += ghostInterval;
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        rb.MovePosition(endPos);
+        if (dashGhostTrail != null)
+            dashGhostTrail.SpawnGhost(endPos, spriteRenderer.sprite, facingDirection == -1);
+        isDashing = false;
+        isInvulnerable = false;
     }
 
     private void OnAttack(InputAction.CallbackContext ctx)
@@ -131,7 +180,7 @@ private void OnJump(InputAction.CallbackContext ctx)
 
     private void Update()
     {
-        if (isInvulnerable)
+        if (isInvulnerable && !isDashing)
         {
             invulnerableFrameCounter--;
             if (invulnerableFrameCounter <= 0)
@@ -163,13 +212,13 @@ private void OnJump(InputAction.CallbackContext ctx)
         animator.SetBool("isGrounded", isGrounded);
     }
 
-private void FixedUpdate()
+    private void FixedUpdate()
     {
         CheckGrounded();
         ApplyMovement();
     }
 
-private void CheckGrounded()
+    private void CheckGrounded()
     {
         if (groundCheckPoint != null)
             isGrounded = Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, groundLayer);
@@ -177,6 +226,7 @@ private void CheckGrounded()
 
     private void ApplyMovement()
     {
+        if (isDashing) return;
         rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
     }
 
@@ -191,6 +241,26 @@ private void CheckGrounded()
         scale.x = Mathf.Abs(scale.x) * -facingDirection;
         transform.localScale = scale;
     }
+
+    public void TakeDamage(int amount)
+    {
+        if (isInvulnerable) return;
+        currentHealth -= amount;
+        Debug.Log($"[Samurai] Took {amount} damage, health: {currentHealth}/{maxHealth}");
+        if (currentHealth <= 0)
+        {
+            Debug.Log("[Samurai] Defeated!");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
+        }
+    }
+
+    public void Heal(int amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+    }
+
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
 
     public bool IsInvulnerable => isInvulnerable;
 }
