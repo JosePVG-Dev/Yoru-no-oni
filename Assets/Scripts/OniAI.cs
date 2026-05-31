@@ -172,9 +172,10 @@ public class OniAI : Enemy
 
         if (Mathf.Abs(direction.x) > 0.1f)
         {
-            Vector3 scale = transform.localScale;
-            scale.x = Mathf.Abs(scale.x) * (direction.x > 0 ? -1 : 1);
-            transform.localScale = scale;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.flipX = direction.x < 0;
+            }
         }
     }
 
