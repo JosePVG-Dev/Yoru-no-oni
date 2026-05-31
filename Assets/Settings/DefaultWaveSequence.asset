@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e6d7fc808941834e955749d8a934743, type: 3}
+  m_Name: DefaultWaveSequence
+  m_EditorClassIdentifier: Assembly-CSharp::WaveSequence
+  waves: []
+  baseEnemiesPerWave: 2
+  enemiesIncreasePerWave: 1
+  baseSpawnInterval: 5
+  spawnIntervalDecrease: 0.5
+  minSpawnInterval: 1
+  timeBetweenWaves: 8
+  defaultEnemyPrefab: {fileID: 7610743829882779032, guid: 00afd73d00ac04d4ebe856bc10c64b75, type: 3}

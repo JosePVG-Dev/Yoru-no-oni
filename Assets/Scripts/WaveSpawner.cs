@@ -1,159 +1,128 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
 public class WaveSpawner : MonoBehaviour
 {
-    [Header("Prefab")]
-    [SerializeField] private GameObject oniPrefab;
+    [Header("Sequence")]
+    [Tooltip("Assign a WaveSequence asset. If null, auto-generates waves using legacy scaling.")]
+    public WaveSequence waveSequence;
 
     [Header("Spawn Points")]
-    [SerializeField] private Transform leftSpawn;
-    [SerializeField] private Transform rightSpawn;
+    public Transform leftSpawn;
+    public Transform rightSpawn;
 
-    [Header("Wave Settings")]
-    [SerializeField] private int baseEnemiesPerWave = 2;
-    [SerializeField] private float baseSpawnInterval = 5f;
-    [SerializeField] private float timeBetweenWaves = 8f;
-    [SerializeField] private int enemiesIncreasePerWave = 1;
-    [SerializeField] private float spawnIntervalDecrease = 0.5f;
+    [Header("Initial Delay")]
+    [Min(0f)]
+    public float initialDelay = 2f;
 
     [Header("HUD")]
-    [SerializeField] private TMP_Text waveText;
-    [SerializeField] private TMP_Text waveStatusText;
+    public TMP_Text waveText;
+    public TMP_Text waveStatusText;
 
     private int currentWave = 0;
-    private int enemiesToSpawn;
-    private int enemiesSpawned;
-    private int enemiesAlive;
-    private float spawnTimer;
-    private float waveTimer;
-    private float initialDelay = 2f;
-    private bool waveActive;
-    private bool waitingBetweenWaves;
+    private int enemiesAlive = 0;
+    private bool waveActive = false;
+    private WaveConfig activeConfig;
 
     private void Start()
     {
-        Debug.Log("[WaveSpawner] Start() called");
-        if (oniPrefab == null)
-        {
-            Debug.LogError("[WaveSpawner] Oni Prefab not assigned!");
-            return;
-        }
-        Debug.Log("[WaveSpawner] oniPrefab=" + oniPrefab.name);
+        StartCoroutine(RunWaves());
     }
 
-    private void Update()
+    private IEnumerator RunWaves()
     {
-        if (initialDelay > 0f)
-        {
-            initialDelay -= Time.deltaTime;
-            if (initialDelay <= 0f)
-            {
-                Debug.Log("[WaveSpawner] Initial delay complete, starting wave");
-                StartNextWave();
-            }
-            return;
-        }
+        yield return new WaitForSeconds(initialDelay);
 
-        if (waveActive)
+        while (true)
         {
-            spawnTimer -= Time.deltaTime;
-            if (spawnTimer <= 0f && enemiesSpawned < enemiesToSpawn)
-            {
-                SpawnOni();
-                spawnTimer = GetCurrentSpawnInterval();
-            }
-        }
+            currentWave++;
+            waveActive = true;
+            enemiesAlive = 0;
 
-        if (waitingBetweenWaves)
-        {
-            waveTimer -= Time.deltaTime;
-            if (waveTimer <= 0f)
+            activeConfig = GetWaveConfig(currentWave);
+
+            if (!string.IsNullOrEmpty(activeConfig.announcementText))
             {
-                waitingBetweenWaves = false;
-                StartNextWave();
+                waveText.text = activeConfig.announcementText;
             }
-            UpdateWaveStatusTimer();
+            else
+            {
+                waveText.text = "Wave " + currentWave;
+            }
+
+            yield return StartCoroutine(SpawnWave(activeConfig));
+
+            if (activeConfig.requireDefeat)
+            {
+                while (enemiesAlive > 0)
+                {
+                    waveStatusText.text = "Enemies: " + enemiesAlive;
+                    yield return null;
+                }
+            }
+
+            yield return new WaitForSeconds(activeConfig.postWaveDelay);
+            waveActive = false;
         }
     }
 
-    private void StartNextWave()
+    private WaveConfig GetWaveConfig(int waveNumber)
     {
-        currentWave++;
-        enemiesToSpawn = baseEnemiesPerWave + (currentWave - 1) * enemiesIncreasePerWave;
-        enemiesSpawned = 0;
-        enemiesAlive = 0;
-        spawnTimer = 0f;
-        waveActive = true;
-
-        UpdateHUD();
-        Debug.Log("[WaveSpawner] Wave " + currentWave + " started! " + enemiesToSpawn + " enemies");
-    }
-
-    private void SpawnOni()
-    {
-        Transform spawnPoint = GetSpawnPoint();
-        if (spawnPoint == null)
+        if (waveSequence != null && waveSequence.waves != null && waveNumber <= waveSequence.waves.Count)
         {
-            Debug.LogError("[WaveSpawner] No spawn point!");
-            return;
+            var config = waveSequence.waves[waveNumber - 1];
+            if (config != null)
+                return config;
         }
 
-        Debug.Log("[WaveSpawner] Spawning Oni at " + spawnPoint.position);
-        GameObject oni = Instantiate(oniPrefab, spawnPoint.position, Quaternion.identity);
-        enemiesSpawned++;
-        enemiesAlive++;
+        if (waveSequence != null)
+            return waveSequence.GenerateWave(waveNumber);
 
-        OniDeathTracker tracker = oni.AddComponent<OniDeathTracker>();
+        return null;
+    }
+
+    private IEnumerator SpawnWave(WaveConfig config)
+    {
+        if (config == null) yield break;
+
+        for (int i = 0; i < config.enemyCount; i++)
+        {
+            SpawnEnemy(config);
+            yield return new WaitForSeconds(config.spawnInterval);
+        }
+    }
+
+    private void SpawnEnemy(WaveConfig config)
+    {
+        if (config.enemyPrefabs == null || config.enemyPrefabs.Count == 0)
+            return;
+
+        Transform spawnPoint = Random.value > 0.5f ? leftSpawn : rightSpawn;
+        GameObject prefab = config.enemyPrefabs[Random.Range(0, config.enemyPrefabs.Count)];
+        GameObject enemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+
+        var tracker = enemy.AddComponent<OniDeathTracker>();
         tracker.spawner = this;
-    }
-
-    private Transform GetSpawnPoint()
-    {
-        bool useLeft = Random.value < 0.5f;
-        if (useLeft && leftSpawn != null) return leftSpawn;
-        if (!useLeft && rightSpawn != null) return rightSpawn;
-        return leftSpawn ?? rightSpawn;
-    }
-
-    private float GetCurrentSpawnInterval()
-    {
-        return Mathf.Max(1f, baseSpawnInterval - (currentWave - 1) * spawnIntervalDecrease);
     }
 
     public void OnEnemyDied()
     {
         enemiesAlive--;
-        CheckWaveComplete();
-    }
-
-    private void CheckWaveComplete()
-    {
-        if (enemiesSpawned >= enemiesToSpawn && enemiesAlive <= 0)
-        {
-            waveActive = false;
-            waitingBetweenWaves = true;
-            waveTimer = timeBetweenWaves;
-
-            if (waveStatusText != null)
-                waveStatusText.text = "Wave " + currentWave + " Complete!";
-
-            Debug.Log("[WaveSpawner] Wave " + currentWave + " complete!");
-        }
-    }
-
-    private void UpdateWaveStatusTimer()
-    {
-        if (waveStatusText != null)
-            waveStatusText.text = "Next Wave in " + Mathf.CeilToInt(waveTimer) + "s";
+        enemiesAlive = Mathf.Max(0, enemiesAlive);
     }
 
     private void UpdateHUD()
     {
-        if (waveText != null)
-            waveText.text = "Wave " + currentWave;
-        if (waveStatusText != null)
-            waveStatusText.text = "Enemies: " + enemiesToSpawn;
+        if (waveActive && activeConfig != null && activeConfig.requireDefeat)
+        {
+            waveStatusText.text = "Enemies: " + enemiesAlive;
+        }
+    }
+
+    private void Update()
+    {
+        UpdateHUD();
     }
 }
 
