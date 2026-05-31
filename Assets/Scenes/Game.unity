@@ -4114,7 +4114,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 507ec817300ef6240a5b2b83efb2c2fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Shrine
-  health: 10
+  maxHealth: 10
+  currentHealth: 0
+  fullSprite: {fileID: 21300000, guid: d2fc95e21f9305347882e337c6cb78e9, type: 3}
+  damagedSprite: {fileID: 21300000, guid: d2fc95e21f9305347882e337c6cb78e9, type: 3}
+  criticalSprite: {fileID: 21300000, guid: d2fc95e21f9305347882e337c6cb78e9, type: 3}
+  destroyedSprite: {fileID: 21300000, guid: d2fc95e21f9305347882e337c6cb78e9, type: 3}
+  deathDelay: 1.5
 --- !u!21 &2083381705
 Material:
   serializedVersion: 8
