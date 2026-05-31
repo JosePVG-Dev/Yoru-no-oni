@@ -5,8 +5,19 @@ public class MainMenu : MonoBehaviour
 {
     public void PlayGame()
     {
-        Debug.Log("[MainMenu] PlayGame called, loading 'Game' scene...");
-        SceneManager.LoadScene("Game");
+        var storyPanel = GameObject.Find("StoryPanel");
+        if (storyPanel != null)
+        {
+            storyPanel.SetActive(true);
+            var story = storyPanel.GetComponent<StoryIntro>();
+            if (story != null)
+                story.LoadAndStartStory();
+        }
+        else
+        {
+            // Fallback: load game directly if StoryPanel not found
+            SceneManager.LoadScene("Game");
+        }
     }
 
     public void QuitGame()
