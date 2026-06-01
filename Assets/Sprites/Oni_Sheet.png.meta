@@ -45,7 +45,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -114,7 +114,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 182
-        y: 744
+        y: 747
         width: 243
         height: 243
       alignment: 9
@@ -123,7 +123,7 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 10aca9b3000000000800000000000000
       internalID: 1000000001
@@ -136,7 +136,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 434
-        y: 748
+        y: 750
         width: 243
         height: 243
       alignment: 9
@@ -145,7 +145,7 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 20aca9b3000000000800000000000000
       internalID: 1000000002
@@ -157,17 +157,17 @@ TextureImporter:
       name: Walk_01
       rect:
         serializedVersion: 2
-        x: 160
-        y: 500
+        x: 167
+        y: 501
         width: 243
         height: 243
       alignment: 9
-      pivot: {x: 0.5082604, y: -0.08133898}
-      border: {x: 0, y: 3, z: 0, w: 0}
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 30aca9b3000000000800000000000000
       internalID: 1000000003
@@ -179,17 +179,17 @@ TextureImporter:
       name: Walk_02
       rect:
         serializedVersion: 2
-        x: 428
-        y: 490
+        x: 431
+        y: 500
         width: 243
-        height: 243
+        height: 237
       alignment: 9
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 15, z: 0, w: 0}
+      pivot: {x: 0.5000005, y: 0}
+      border: {x: 0, y: 2, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 40aca9b3000000000800000000000000
       internalID: 1000000004
@@ -202,16 +202,16 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 682
-        y: 484
+        y: 504
         width: 243
-        height: 243
+        height: 224
       alignment: 9
       pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 23, z: 0, w: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 50aca9b3000000000800000000000000
       internalID: 1000000005
@@ -223,17 +223,17 @@ TextureImporter:
       name: Walk_04
       rect:
         serializedVersion: 2
-        x: 967
-        y: 473
+        x: 968
+        y: 493
         width: 243
-        height: 243
+        height: 224
       alignment: 9
-      pivot: {x: 0.5049974, y: 0.00000025117347}
-      border: {x: 0, y: 23, z: 0, w: 0}
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 60aca9b3000000000800000000000000
       internalID: 1000000006
@@ -246,7 +246,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 201
-        y: 244
+        y: 245
         width: 243
         height: 243
       alignment: 9
@@ -255,7 +255,7 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: 70aca9b3000000000800000000000000
       internalID: 1000000007
@@ -272,59 +272,15 @@ TextureImporter:
         width: 376
         height: 243
       alignment: 9
-      pivot: {x: 0.5, y: 0}
+      pivot: {x: 0.50000006, y: 0.16994055}
       border: {x: 0, y: 64, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
       spriteID: a0aca9b3000000000800000000000000
       internalID: 1000000010
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Death_02
-      rect:
-        serializedVersion: 2
-        x: 778
-        y: 113
-        width: 243
-        height: 243
-      alignment: 9
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 16, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b0aca9b3000000000800000000000000
-      internalID: 1000000011
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Death_03
-      rect:
-        serializedVersion: 2
-        x: 1257
-        y: 199
-        width: 243
-        height: 243
-      alignment: 9
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 20, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c0aca9b3000000000800000000000000
-      internalID: 1000000012
       vertices: []
       indices: 
       edges: []
@@ -341,7 +297,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       Death_01: 1000000010
       Death_02: 1000000011
@@ -351,6 +309,7 @@ TextureImporter:
       Jump_01: 1000000007
       Jump_02: 1000000008
       Jump_03: 1000000009
+      Oni_Sheet_0: -133026916
       Walk_01: 1000000003
       Walk_02: 1000000004
       Walk_03: 1000000005

@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: d2fc95e21f9305347882e337c6cb78e9
+guid: 0600c08d828e76b44991ba9eb475e1eb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7886095280468031780
-    second: Shrine_0
-  - first:
-      213: 6821660296988494772
-    second: Shrine_1
+      213: -468967098106991883
+    second: ControlsPanel_Check_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -40,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -49,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -116,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Shrine_0
+      name: ControlsPanel_Check_0
       rect:
         serializedVersion: 2
-        x: 11
+        x: 0
         y: 0
-        width: 1494
-        height: 1024
+        width: 2368
+        height: 1332
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,30 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cd681deef16fe8290800000000000000
-      internalID: -7886095280468031780
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Shrine_1
-      rect:
-        serializedVersion: 2
-        x: 726
-        y: 887
-        width: 22
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4bb826cb5e76bae50800000000000000
-      internalID: 6821660296988494772
+      spriteID: 5faacf1b8e4ed79f0800000000000000
+      internalID: -468967098106991883
       vertices: []
       indices: 
       edges: []
@@ -163,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -173,8 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Shrine_0: -7886095280468031780
-      Shrine_1: 6821660296988494772
+      ControlsPanel_Check_0: -468967098106991883
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

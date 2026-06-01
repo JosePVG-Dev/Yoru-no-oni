@@ -13,10 +13,14 @@ MonoBehaviour:
   m_Name: DefaultWaveSequence
   m_EditorClassIdentifier: Assembly-CSharp::WaveSequence
   waves: []
-  baseEnemiesPerWave: 2
+  baseEnemiesPerWave: 4
   enemiesIncreasePerWave: 1
-  baseSpawnInterval: 5
+  baseSpawnInterval: 2.5
   spawnIntervalDecrease: 0.5
   minSpawnInterval: 1
   timeBetweenWaves: 8
-  defaultEnemyPrefab: {fileID: 7610743829882779032, guid: 00afd73d00ac04d4ebe856bc10c64b75, type: 3}
+  enemyPrefabs:
+  - {fileID: 7610743829882779032, guid: 00afd73d00ac04d4ebe856bc10c64b75, type: 3}
+  - {fileID: 7610743829882779032, guid: e6e2173857373d143bac66bf3c0c9619, type: 3}
+  - {fileID: 7610743829882779032, guid: acfb9a8f1987b524cb7163b430a97f49, type: 3}
+  - {fileID: 7610743829882779032, guid: e13b641095354a4429bc85756966b792, type: 3}

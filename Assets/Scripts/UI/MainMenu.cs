@@ -3,9 +3,11 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject storyPanel;
+
     public void PlayGame()
     {
-        var storyPanel = GameObject.Find("StoryPanel");
         if (storyPanel != null)
         {
             storyPanel.SetActive(true);
@@ -15,7 +17,6 @@ public class MainMenu : MonoBehaviour
         }
         else
         {
-            // Fallback: load game directly if StoryPanel not found
             SceneManager.LoadScene("Game");
         }
     }
@@ -30,8 +31,11 @@ public class MainMenu : MonoBehaviour
 #endif
     }
 
-void Start()
+    void Start()
     {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayMenuBGM();
+
         var playBtn = GameObject.Find("PlayButton")?.GetComponent<UnityEngine.UI.Button>();
         if (playBtn != null) playBtn.onClick.AddListener(PlayGame);
         var quitBtn = GameObject.Find("QuitButton")?.GetComponent<UnityEngine.UI.Button>();
@@ -44,5 +48,4 @@ void Start()
             if (settingsBtn != null && sm != null) settingsBtn.onClick.AddListener(sm.OpenSettings);
         }
     }
-
 }

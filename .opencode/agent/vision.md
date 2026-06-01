@@ -1,7 +1,7 @@
 ---
 description: Vision and image analysis subagent. Use when you need to analyze, describe, or extract information from images, screenshots, sprites, or any visual content.
 mode: subagent
-model: opencode-go/qwen3.6-plus
+model: opencode-go/minimax-m2.5
 permission:
   read: allow
   bash: ask

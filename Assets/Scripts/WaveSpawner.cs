@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -20,10 +21,19 @@ public class WaveSpawner : MonoBehaviour
     public TMP_Text waveText;
     public TMP_Text waveStatusText;
 
+    [Header("Reward Targets")]
+    public SamuraiController samurai;
+    public Shrine shrine;
+
+    [Header("Audio")]
+
     private int currentWave = 0;
     private int enemiesAlive = 0;
     private bool waveActive = false;
     private WaveConfig activeConfig;
+    public int CurrentWave => currentWave;
+    private List<GameObject> spawnedEnemies = new List<GameObject>();
+    private int remainingEnemies = 0;
 
     private void Start()
     {
@@ -36,6 +46,17 @@ public class WaveSpawner : MonoBehaviour
 
         while (true)
         {
+            foreach (var go in spawnedEnemies)
+            {
+                if (go != null)
+                {
+                    var tracker = go.GetComponent<OniDeathTracker>();
+                    if (tracker != null) tracker.spawner = null;
+                    Destroy(go);
+                }
+            }
+            spawnedEnemies.Clear();
+
             currentWave++;
             waveActive = true;
             enemiesAlive = 0;
@@ -48,8 +69,13 @@ public class WaveSpawner : MonoBehaviour
             }
             else
             {
-                waveText.text = "Wave " + currentWave;
+                waveText.text = "Oleada " + currentWave;
             }
+
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayNewWave();
+
+            remainingEnemies = activeConfig.enemyCount;
 
             yield return StartCoroutine(SpawnWave(activeConfig));
 
@@ -57,13 +83,34 @@ public class WaveSpawner : MonoBehaviour
             {
                 while (enemiesAlive > 0)
                 {
-                    waveStatusText.text = "Enemies: " + enemiesAlive;
+                    yield return null;
+                }
+            }
+            else
+            {
+                while (enemiesAlive > 0)
+                {
                     yield return null;
                 }
             }
 
-            yield return new WaitForSeconds(activeConfig.postWaveDelay);
+            float postTimer = activeConfig.postWaveDelay;
+            while (postTimer > 0f)
+            {
+                postTimer -= Time.deltaTime;
+                waveStatusText.text = string.Format("Siguiente oleada: {0}s", Mathf.CeilToInt(postTimer));
+                yield return null;
+            }
+
             waveActive = false;
+
+            if (currentWave % 4 == 0)
+            {
+                if (samurai != null)
+                    samurai.Heal(1);
+                if (shrine != null)
+                    shrine.IncreaseMaxHealth(5);
+            }
         }
     }
 
@@ -102,6 +149,13 @@ public class WaveSpawner : MonoBehaviour
         GameObject prefab = config.enemyPrefabs[Random.Range(0, config.enemyPrefabs.Count)];
         GameObject enemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
 
+        spawnedEnemies.Add(enemy);
+        enemiesAlive++;
+
+        var enemyComp = enemy.GetComponent<Enemy>();
+        if (enemyComp != null)
+            enemyComp.WaveSpawner = this;
+
         var tracker = enemy.AddComponent<OniDeathTracker>();
         tracker.spawner = this;
     }
@@ -110,20 +164,22 @@ public class WaveSpawner : MonoBehaviour
     {
         enemiesAlive--;
         enemiesAlive = Mathf.Max(0, enemiesAlive);
+        remainingEnemies = Mathf.Max(0, remainingEnemies - 1);
     }
 
     private void UpdateHUD()
     {
-        if (waveActive && activeConfig != null && activeConfig.requireDefeat)
-        {
-            waveStatusText.text = "Enemies: " + enemiesAlive;
-        }
+        if (!waveActive || activeConfig == null) return;
+
+        if (remainingEnemies > 0)
+            waveStatusText.text = "Faltan " + remainingEnemies + " onis";
     }
 
     private void Update()
     {
         UpdateHUD();
     }
+
 }
 
 public class OniDeathTracker : MonoBehaviour

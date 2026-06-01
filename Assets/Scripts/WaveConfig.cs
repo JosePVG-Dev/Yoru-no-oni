@@ -27,6 +27,10 @@ public class WaveConfig : ScriptableObject
     [Tooltip("If true, enemies must be defeated to advance; false = timer-based")]
     public bool requireDefeat = true;
 
+    [Tooltip("Time limit in seconds for timer-based waves (requireDefeat=false)")]
+    [Min(0f)]
+    public float timeLimit = 60f;
+
     [Tooltip("Custom text shown at wave start (e.g. 'BOSS WAVE!')")]
     public string announcementText = "";
 }

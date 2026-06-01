@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+
+using TMPro;
 using System.Collections;
 
 public class SamuraiController : MonoBehaviour
@@ -17,14 +19,22 @@ public class SamuraiController : MonoBehaviour
     [SerializeField] private DashGhostTrail dashGhostTrail;
 
     [Header("Attack")]
-    [SerializeField] private float attackRange = 2f;
-    [SerializeField] private float attackConeAngle = 60f;
-    [SerializeField] private Vector2 attackOriginOffset = new Vector2(0f, 0.5f);
+    [SerializeField] private float attackRange = 3f;
+    [SerializeField] private float attackHeight = 2f;
+    [SerializeField] private float attackForwardOffset = 1.5f;
     [SerializeField] private LayerMask enemyLayer = ~0;
+    [SerializeField] private float attackCooldown = 0.35f;
+
+    [Header("Audio")]
+
 
     [Header("Health")]
     [SerializeField] private int maxHealth = 5;
-    private int currentHealth;
+    
+    [SerializeField] private TextMeshProUGUI[] healthHearts;
+    private Color heartFullColor = new Color(0.78f, 0.082f, 0.522f, 1f);
+    private Color heartEmptyColor = new Color(0.176f, 0.063f, 0.306f, 1f);
+private int currentHealth;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
@@ -40,6 +50,7 @@ public class SamuraiController : MonoBehaviour
     private bool isGrounded;
     private bool isInvulnerable;
     private int invulnerableFrameCounter;
+    private float attackCooldownTimer;
     private float dashCooldownTimer;
     private float dashBarFullWidth;
     private bool isDashing;
@@ -51,7 +62,12 @@ public class SamuraiController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         inputActions = new InputSystem_Actions();
 
-        currentHealth = maxHealth;
+        
+
+        for (int i = 0; i < healthHearts?.Length; i++)
+            if (healthHearts[i] != null)
+                healthHearts[i].color = heartFullColor;
+currentHealth = maxHealth;
 
         if (groundCheckPoint == null)
             groundCheckPoint = transform.Find("GroundCheck");
@@ -108,6 +124,8 @@ public class SamuraiController : MonoBehaviour
             isGrounded = false;
             if (animator != null)
                 animator.SetBool("isGrounded", false);
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayJump();
         }
     }
 
@@ -121,6 +139,8 @@ public class SamuraiController : MonoBehaviour
         isInvulnerable = true;
         if (animator != null)
             animator.SetTrigger("Dash");
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayDash();
         StartCoroutine(DashCoroutine(direction));
     }
 
@@ -156,25 +176,25 @@ public class SamuraiController : MonoBehaviour
 
     private void OnAttack(InputAction.CallbackContext ctx)
     {
+        if (attackCooldownTimer > 0f) return;
+        attackCooldownTimer = attackCooldown;
+
         if (animator != null)
             animator.SetTrigger("Attack");
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayAttackSlash();
 
-        Vector2 origin = (Vector2)transform.position + attackOriginOffset;
-        Vector2 attackDir = facingDirection == 1 ? Vector2.right : Vector2.left;
+        Vector2 rectCenter = (Vector2)transform.position
+            + Vector2.right * facingDirection * attackForwardOffset;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(origin, attackRange, enemyLayer);
+        Vector2 rectSize = new Vector2(attackRange, attackHeight);
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(rectCenter, rectSize, 0f, enemyLayer);
         foreach (var hit in hits)
         {
-            Vector2 dirToTarget = ((Vector2)hit.transform.position - origin).normalized;
-            float angle = Vector2.Angle(attackDir, dirToTarget);
-            if (angle <= attackConeAngle / 2f)
-            {
-                var enemy = hit.GetComponent<Enemy>();
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(1);
-                }
-            }
+            var enemy = hit.GetComponent<Enemy>();
+            if (enemy != null)
+                enemy.TakeDamage(1);
         }
     }
 
@@ -195,13 +215,29 @@ public class SamuraiController : MonoBehaviour
             if (dashCooldownTimer < 0f) dashCooldownTimer = 0f;
         }
 
+        if (attackCooldownTimer > 0f)
+        {
+            attackCooldownTimer -= Time.deltaTime;
+            if (attackCooldownTimer < 0f) attackCooldownTimer = 0f;
+        }
+
         if (dashCooldownBar != null)
         {
             float progress = 1f - (dashCooldownTimer / dashCooldown);
             dashCooldownBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, progress * dashBarFullWidth);
         }
 
-        UpdateFacingDirection();
+        
+
+        if (healthHearts != null)
+        {
+            for (int i = 0; i < healthHearts.Length; i++)
+            {
+                if (healthHearts[i] != null)
+                    healthHearts[i].color = i < currentHealth ? heartFullColor : heartEmptyColor;
+            }
+        }
+UpdateFacingDirection();
         UpdateAnimation();
     }
 
@@ -242,15 +278,21 @@ public class SamuraiController : MonoBehaviour
         transform.localScale = scale;
     }
 
-    public void TakeDamage(int amount)
+public void TakeDamage(int amount)
     {
         if (isInvulnerable) return;
         currentHealth -= amount;
         Debug.Log($"[Samurai] Took {amount} damage, health: {currentHealth}/{maxHealth}");
+
+        if (spriteRenderer != null)
+            StartCoroutine(FlashDamage());
+
         if (currentHealth <= 0)
         {
             Debug.Log("[Samurai] Defeated!");
-            UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
+            var gameOver = FindFirstObjectByType<GameOverUI>();
+            if (gameOver != null)
+                gameOver.Show("El Samurai ha caido");
         }
     }
 
@@ -263,4 +305,20 @@ public class SamuraiController : MonoBehaviour
     public int MaxHealth => maxHealth;
 
     public bool IsInvulnerable => isInvulnerable;
+
+
+private System.Collections.IEnumerator FlashDamage()
+    {
+        spriteRenderer.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        float elapsed = 0f;
+        float duration = 0.15f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            spriteRenderer.color = Color.Lerp(Color.red, Color.white, elapsed / duration);
+            yield return null;
+        }
+        spriteRenderer.color = Color.white;
+    }
 }

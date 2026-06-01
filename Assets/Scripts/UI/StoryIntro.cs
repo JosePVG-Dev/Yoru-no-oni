@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using TMPro;
 
@@ -27,6 +28,12 @@ public class StoryIntro : MonoBehaviour
 
     public void LoadAndStartStory()
     {
+        if (typewriterRoutine != null)
+        {
+            StopCoroutine(typewriterRoutine);
+            typewriterRoutine = null;
+        }
+
         var textAsset = Resources.Load<TextAsset>(resourceName);
         if (textAsset != null)
         {
@@ -59,7 +66,7 @@ public class StoryIntro : MonoBehaviour
 
     private void Update()
     {
-        if (storyPanel.activeSelf && (Input.GetMouseButtonDown(0) || Input.anyKeyDown))
+        if (storyPanel.activeSelf && (Mouse.current?.leftButton.wasPressedThisFrame == true || Keyboard.current?.anyKey.wasPressedThisFrame == true))
         {
             if (!textFullyShown && typewriterRoutine != null)
             {

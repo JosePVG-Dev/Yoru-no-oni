@@ -1,5 +1,7 @@
 using UnityEngine;
 
+public enum OniType { Balanced, Fast, Tank, Jumper }
+
 public class OniAI : Enemy
 {
     private enum State { WalkingToShrine, Fighting, AttackingShrine, Dead }
@@ -7,11 +9,17 @@ public class OniAI : Enemy
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
 
+    [SerializeField] private OniType oniType = OniType.Balanced;
+
     [Header("Detection")]
-    [SerializeField] private float detectionRadius = 6f;
+    [SerializeField] private float detectionRadius = 3f;
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private float attackCooldown = 1.5f;
     [SerializeField] private int attackDamage = 1;
+
+    [Header("Jumper")]
+    [SerializeField] private float jumpForce = 7f;
+    [SerializeField] private float jumpInterval = 1.5f;
 
     private State currentState;
     private Transform shrine;
@@ -19,18 +27,29 @@ public class OniAI : Enemy
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private float attackTimer;
-    private bool isDead;
+    private float jumpTimer;
+
+    private static System.Collections.Generic.HashSet<Collider2D> _allOniColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
     protected override void Awake()
     {
         base.Awake();
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        var col = GetComponent<Collider2D>();
+        if (col != null)
+        {
+            _allOniColliders.RemoveWhere(c => c == null);
+            foreach (var other in _allOniColliders)
+                Physics2D.IgnoreCollision(col, other);
+            _allOniColliders.Add(col);
+        }
     }
 
     protected override System.Collections.IEnumerator DieRoutine()
     {
-        isDead = true;
+        currentState = State.Dead;
         yield return base.DieRoutine();
     }
 
@@ -45,6 +64,34 @@ public class OniAI : Enemy
             samurai = samuraiObj.transform;
 
         currentState = State.WalkingToShrine;
+
+        switch (oniType)
+        {
+            case OniType.Fast:
+                InitHealth(1);
+                moveSpeed = 5f;
+                baseColor = new Color(1f, 0.5f, 0.1f);
+                break;
+            case OniType.Tank:
+                InitHealth(8);
+                moveSpeed = 1.5f;
+                baseColor = new Color(1f, 0.8f, 0.15f);
+                attackDamage = 2;
+                break;
+            case OniType.Jumper:
+                InitHealth(2);
+                moveSpeed = 2.5f;
+                baseColor = new Color(0.3f, 0.9f, 0.2f);
+                jumpTimer = jumpInterval;
+                break;
+            default:
+                InitHealth(3);
+                moveSpeed = 2f;
+                baseColor = Color.white;
+                break;
+        }
+
+        sr.color = baseColor;
     }
 
     private void Update()
@@ -71,35 +118,52 @@ public class OniAI : Enemy
 
     private void FixedUpdate()
     {
-        if (isDead) return;
+        if (isDead || rb == null) return;
         MoveTowardsTarget();
+
+        if (oniType == OniType.Jumper)
+        {
+            jumpTimer -= Time.fixedDeltaTime;
+            if (jumpTimer <= 0f && Mathf.Abs(rb.linearVelocity.y) < 0.1f &&
+                (currentState == State.WalkingToShrine || currentState == State.Fighting))
+            {
+                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+                jumpTimer = jumpInterval;
+            }
+        }
     }
 
     private void UpdateWalkingToShrine()
     {
         if (shrine == null) return;
 
-        if (samurai != null)
+        float distToShrine = Vector2.Distance(transform.position, shrine.position);
+        float xDistToShrine = Mathf.Abs(transform.position.x - shrine.position.x);
+
+        if (oniType != OniType.Tank && samurai != null)
         {
             float distToSamurai = Vector2.Distance(transform.position, samurai.position);
-            if (distToSamurai <= detectionRadius)
+            if (distToSamurai <= detectionRadius && distToSamurai < distToShrine)
             {
                 currentState = State.Fighting;
-                Debug.Log($"[OniAI] {name} detected Samurai, switching to Fighting");
                 return;
             }
         }
 
-        float distToShrine = Vector2.Distance(transform.position, shrine.position);
-        if (distToShrine <= attackRange)
+        if (xDistToShrine <= attackRange)
         {
             currentState = State.AttackingShrine;
-            Debug.Log($"[OniAI] {name} reached Shrine, attacking!");
         }
     }
 
     private void UpdateFighting()
     {
+        if (oniType == OniType.Tank)
+        {
+            currentState = State.AttackingShrine;
+            return;
+        }
+
         if (samurai == null)
         {
             currentState = State.WalkingToShrine;
@@ -135,21 +199,11 @@ public class OniAI : Enemy
     {
         if (shrine == null) return;
 
-        float distToShrine = Vector2.Distance(transform.position, shrine.position);
-        if (distToShrine <= attackRange && attackTimer <= 0f)
+        float xDistToShrine = Mathf.Abs(transform.position.x - shrine.position.x);
+        if (xDistToShrine <= attackRange && attackTimer <= 0f)
         {
             AttackTarget(shrine);
             attackTimer = attackCooldown;
-        }
-
-        if (samurai != null)
-        {
-            float distToSamurai = Vector2.Distance(transform.position, samurai.position);
-            if (distToSamurai <= detectionRadius)
-            {
-                currentState = State.Fighting;
-                Debug.Log($"[OniAI] {name} Samurai near Shrine, switching to Fighting");
-            }
         }
     }
 
@@ -161,7 +215,13 @@ public class OniAI : Enemy
         Vector2 direction = ((Vector2)target.position - rb.position);
         float dist = direction.magnitude;
 
-        if ((currentState == State.WalkingToShrine || currentState == State.Fighting) && dist > attackRange)
+        bool shouldMove;
+        if (currentState == State.WalkingToShrine || currentState == State.AttackingShrine)
+            shouldMove = Mathf.Abs(direction.x) > attackRange;
+        else
+            shouldMove = dist > attackRange;
+
+        if (shouldMove)
         {
             rb.linearVelocity = new Vector2(direction.normalized.x * moveSpeed, rb.linearVelocity.y);
         }
