@@ -145,7 +145,11 @@ public class PauseMenu : MonoBehaviour
 
     public void OpenSettings()
     {
-        settingsMenu?.OpenSettings();
+        if (settingsMenu != null)
+        {
+            settingsMenu.PauseContext = true;
+            settingsMenu.OpenSettings();
+        }
     }
 
     public void GoToMenu()
