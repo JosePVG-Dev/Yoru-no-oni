@@ -8,6 +8,8 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] private TMP_Text causeText;
     [SerializeField] private TMP_Text waveText;
 
+    public bool IsOpen => panel != null && panel.activeSelf;
+
     private void Start()
     {
         if (panel != null)

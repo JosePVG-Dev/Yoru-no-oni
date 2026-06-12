@@ -53,7 +53,7 @@ public class PauseMenu : MonoBehaviour
 
     private void Update()
     {
-        if (gameOverUI != null && gameOverUI.gameObject.activeInHierarchy) return;
+        if (gameOverUI != null && gameOverUI.IsOpen) return;
         if (rewardPanel != null && rewardPanel.gameObject.activeInHierarchy) return;
 
         if (!isPaused && (Keyboard.current?.enterKey.wasPressedThisFrame == true ||
