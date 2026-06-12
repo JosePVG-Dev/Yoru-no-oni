@@ -8,6 +8,9 @@ public class SettingsMenu : MonoBehaviour
     [SerializeField] private Slider volumeSlider;
     [SerializeField] private Toggle fullscreenToggle;
 
+    public bool IsOpen => settingsPanel != null && settingsPanel.activeSelf;
+    public bool PauseContext { get; set; }
+
     private void Awake()
     {
         float savedVolume = PlayerPrefs.GetFloat("MasterVolume", 1.0f);
@@ -37,7 +40,7 @@ public class SettingsMenu : MonoBehaviour
 
     private void Update()
     {
-        if (settingsPanel != null && settingsPanel.activeSelf && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (settingsPanel != null && settingsPanel.activeSelf && !PauseContext && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             CloseSettings();
         }
@@ -55,6 +58,7 @@ public class SettingsMenu : MonoBehaviour
 
     public void CloseSettings()
     {
+        PauseContext = false;
         PlayerPrefs.SetFloat("MasterVolume", AudioListener.volume);
         PlayerPrefs.SetInt("Fullscreen", Screen.fullScreen ? 1 : 0);
         PlayerPrefs.Save();
