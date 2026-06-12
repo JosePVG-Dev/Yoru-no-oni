@@ -61,7 +61,8 @@ public class PauseMenu : MonoBehaviour
         {
             Pause();
         }
-        else if (isPaused && Keyboard.current?.escapeKey.wasPressedThisFrame == true)
+        else if (isPaused && (Keyboard.current?.enterKey.wasPressedThisFrame == true ||
+                              Keyboard.current?.escapeKey.wasPressedThisFrame == true))
         {
             HandleEscapeInPause();
         }
