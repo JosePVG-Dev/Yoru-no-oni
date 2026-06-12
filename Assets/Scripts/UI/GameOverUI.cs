@@ -30,6 +30,8 @@ public class GameOverUI : MonoBehaviour
             panel.SetActive(true);
 
         Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
 
         if (causeText != null)
             causeText.text = cause;
@@ -38,6 +40,26 @@ public class GameOverUI : MonoBehaviour
         int wave = spawner != null ? spawner.CurrentWave : 1;
         if (waveText != null)
             waveText.text = "Oleada alcanzada: " + wave;
+    }
+
+    public void ShowVictory(int wave)
+    {
+        if (panel != null)
+            panel.SetActive(true);
+
+        Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        if (causeText != null)
+            causeText.text = "¡Salvaste el santuario!";
+
+        if (waveText != null)
+            waveText.text = "Oleada alcanzada: " + wave;
+
+        var retryBtn = panel.transform.Find("RetryButton")?.gameObject;
+        if (retryBtn != null)
+            retryBtn.SetActive(false);
     }
 
     public void Reiniciar()

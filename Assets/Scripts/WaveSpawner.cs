@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using TMPro;
 
 public class WaveSpawner : MonoBehaviour
@@ -48,7 +49,11 @@ public class WaveSpawner : MonoBehaviour
     {
         yield return new WaitForSeconds(initialDelay);
 
-        while (true)
+        int totalWaves = waveSequence != null && waveSequence.waves != null && waveSequence.waves.Count > 0
+            ? waveSequence.waves.Count
+            : int.MaxValue;
+
+        while (currentWave < totalWaves)
         {
             foreach (var go in spawnedEnemies)
             {
@@ -98,14 +103,6 @@ public class WaveSpawner : MonoBehaviour
                 }
             }
 
-            float postTimer = activeConfig.postWaveDelay;
-            while (postTimer > 0f)
-            {
-                postTimer -= Time.deltaTime;
-                waveStatusText.text = string.Format("Siguiente oleada: {0}s", Mathf.CeilToInt(postTimer));
-                yield return null;
-            }
-
             waveActive = false;
 
             waitingForReward = true;
@@ -114,10 +111,24 @@ public class WaveSpawner : MonoBehaviour
             while (waitingForReward)
                 yield return null;
 
+            if (activeConfig.isBossWave)
+            {
+                ShowVictory();
+                yield break;
+            }
+
             if (currentWave % 5 == 0)
             {
                 if (shrine != null)
                     shrine.IncreaseMaxHealth(5);
+            }
+
+            float postTimer = activeConfig.postWaveDelay;
+            while (postTimer > 0f)
+            {
+                postTimer -= Time.deltaTime;
+                waveStatusText.text = string.Format("Siguiente oleada: {0}s", Mathf.CeilToInt(postTimer));
+                yield return null;
             }
 
         }
@@ -183,6 +194,13 @@ public class WaveSpawner : MonoBehaviour
         waitingForReward = false;
     }
 
+    private void ShowVictory()
+    {
+        var gameOver = FindFirstObjectByType<GameOverUI>();
+        if (gameOver != null)
+            gameOver.ShowVictory(currentWave);
+    }
+
     private void UpdateHUD()
     {
         if (!waveActive || activeConfig == null) return;
@@ -194,6 +212,23 @@ public class WaveSpawner : MonoBehaviour
     private void Update()
     {
         UpdateHUD();
+
+        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame && waveActive)
+        {
+            foreach (var go in spawnedEnemies)
+            {
+                if (go != null)
+                {
+                    var tracker = go.GetComponent<OniDeathTracker>();
+                    if (tracker != null) tracker.spawner = null;
+                    Destroy(go);
+                }
+            }
+            spawnedEnemies.Clear();
+            enemiesAlive = 0;
+            remainingEnemies = 0;
+            currentWave = 9;
+        }
     }
 
 }

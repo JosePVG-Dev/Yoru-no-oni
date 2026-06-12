@@ -9,28 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e6d7fc808941834e955749d8a934743, type: 3}
-  m_Name: DefaultWaveSequence
-  m_EditorClassIdentifier: Assembly-CSharp::WaveSequence
-  waves:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 11400000, guid: 179a7a37b7720914b8f0f471cf38085c, type: 2}
-  baseEnemiesPerWave: 4
-  enemiesIncreasePerWave: 1
-  baseSpawnInterval: 2.5
-  spawnIntervalDecrease: 0.5
-  minSpawnInterval: 1
-  timeBetweenWaves: 8
+  m_Script: {fileID: 11500000, guid: 8065e2484c0cb1d418950e9e1c614953, type: 3}
+  m_Name: Wave_10_Boss
+  m_EditorClassIdentifier: Assembly-CSharp::WaveConfig
   enemyPrefabs:
   - {fileID: 7610743829882779032, guid: 00afd73d00ac04d4ebe856bc10c64b75, type: 3}
   - {fileID: 7610743829882779032, guid: e6e2173857373d143bac66bf3c0c9619, type: 3}
   - {fileID: 7610743829882779032, guid: acfb9a8f1987b524cb7163b430a97f49, type: 3}
   - {fileID: 7610743829882779032, guid: e13b641095354a4429bc85756966b792, type: 3}
+  - {fileID: 7610743829882779032, guid: e7c25a3dfed4c454392cafc4d7077915, type: 3}
+  enemyCount: 12
+  spawnInterval: 1.5
+  postWaveDelay: 3
+  isBossWave: 1
+  requireDefeat: 1
+  timeLimit: 60
+  announcementText: "\xA1El Oni Mayor ha llegado!"
