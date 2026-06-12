@@ -23,7 +23,8 @@ public class SamuraiController : MonoBehaviour
     [SerializeField] private float attackHeight = 2f;
     [SerializeField] private float attackForwardOffset = 1.5f;
     [SerializeField] private LayerMask enemyLayer = ~0;
-    [SerializeField] private float attackCooldown = 0.35f;
+    [SerializeField] private float baseAttackCooldown = 0.35f;
+    [SerializeField] private int baseDamage = 1;
 
     [Header("Audio")]
 
@@ -35,6 +36,9 @@ public class SamuraiController : MonoBehaviour
     private Color heartFullColor = new Color(0.78f, 0.082f, 0.522f, 1f);
     private Color heartEmptyColor = new Color(0.176f, 0.063f, 0.306f, 1f);
 private int currentHealth;
+
+    public int EffectiveDamage => baseDamage + bonusDamage;
+    public float EffectiveAttackCooldown => baseAttackCooldown * attackSpeedMultiplier;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
@@ -52,8 +56,11 @@ private int currentHealth;
     private int invulnerableFrameCounter;
     private float attackCooldownTimer;
     private float dashCooldownTimer;
+    private int bonusDamage;
+    private float attackSpeedMultiplier = 1f;
     private float dashBarFullWidth;
     private bool isDashing;
+    private bool attackHeld;
 
     private void Awake()
     {
@@ -92,6 +99,7 @@ currentHealth = maxHealth;
         inputActions.Player.Jump.performed += OnJump;
         inputActions.Player.Dash.performed += OnDash;
         inputActions.Player.Attack.performed += OnAttack;
+        inputActions.Player.Attack.canceled += OnAttackCanceled;
     }
 
     private void OnDisable()
@@ -102,6 +110,7 @@ currentHealth = maxHealth;
         inputActions.Player.Jump.performed -= OnJump;
         inputActions.Player.Dash.performed -= OnDash;
         inputActions.Player.Attack.performed -= OnAttack;
+        inputActions.Player.Attack.canceled -= OnAttackCanceled;
         inputActions.Player.Disable();
     }
 
@@ -176,8 +185,17 @@ currentHealth = maxHealth;
 
     private void OnAttack(InputAction.CallbackContext ctx)
     {
-        if (attackCooldownTimer > 0f) return;
-        attackCooldownTimer = attackCooldown;
+        attackHeld = true;
+    }
+
+    private void OnAttackCanceled(InputAction.CallbackContext ctx)
+    {
+        attackHeld = false;
+    }
+
+    private void PerformAttack()
+    {
+        attackCooldownTimer = EffectiveAttackCooldown;
 
         if (animator != null)
             animator.SetTrigger("Attack");
@@ -194,7 +212,23 @@ currentHealth = maxHealth;
         {
             var enemy = hit.GetComponent<Enemy>();
             if (enemy != null)
-                enemy.TakeDamage(1);
+                enemy.TakeDamage(EffectiveDamage);
+        }
+    }
+
+    public void ApplyReward(RewardType type)
+    {
+        switch (type)
+        {
+            case RewardType.RestoreHealth:
+                currentHealth = maxHealth;
+                break;
+            case RewardType.BonusDamage:
+                bonusDamage++;
+                break;
+            case RewardType.AttackSpeed:
+                attackSpeedMultiplier *= 0.90f;
+                break;
         }
     }
 
@@ -220,6 +254,9 @@ currentHealth = maxHealth;
             attackCooldownTimer -= Time.deltaTime;
             if (attackCooldownTimer < 0f) attackCooldownTimer = 0f;
         }
+
+        if (attackHeld && attackCooldownTimer <= 0f)
+            PerformAttack();
 
         if (dashCooldownBar != null)
         {

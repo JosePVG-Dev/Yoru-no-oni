@@ -25,6 +25,9 @@ public class WaveSpawner : MonoBehaviour
     public SamuraiController samurai;
     public Shrine shrine;
 
+    [Header("Rewards")]
+    public RewardPanel rewardPanel;
+
     [Header("Audio")]
 
     private int currentWave = 0;
@@ -34,6 +37,7 @@ public class WaveSpawner : MonoBehaviour
     public int CurrentWave => currentWave;
     private List<GameObject> spawnedEnemies = new List<GameObject>();
     private int remainingEnemies = 0;
+    private bool waitingForReward;
 
     private void Start()
     {
@@ -104,13 +108,18 @@ public class WaveSpawner : MonoBehaviour
 
             waveActive = false;
 
-            if (currentWave % 4 == 0)
+            waitingForReward = true;
+            if (rewardPanel != null)
+                rewardPanel.Show(OnRewardSelected);
+            while (waitingForReward)
+                yield return null;
+
+            if (currentWave % 5 == 0)
             {
-                if (samurai != null)
-                    samurai.Heal(1);
                 if (shrine != null)
                     shrine.IncreaseMaxHealth(5);
             }
+
         }
     }
 
@@ -165,6 +174,13 @@ public class WaveSpawner : MonoBehaviour
         enemiesAlive--;
         enemiesAlive = Mathf.Max(0, enemiesAlive);
         remainingEnemies = Mathf.Max(0, remainingEnemies - 1);
+    }
+
+    private void OnRewardSelected(RewardType type)
+    {
+        if (samurai != null)
+            samurai.ApplyReward(type);
+        waitingForReward = false;
     }
 
     private void UpdateHUD()
