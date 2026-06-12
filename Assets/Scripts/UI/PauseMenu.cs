@@ -23,25 +23,26 @@ public class PauseMenu : MonoBehaviour
         if (controlsPanel != null) controlsPanel.SetActive(false);
         if (confirmPanel != null) confirmPanel.SetActive(false);
 
-        var resumeBtn = transform.Find("ResumeButton")?.GetComponent<UnityEngine.UI.Button>();
+        var root = pauseRoot != null ? pauseRoot.transform : transform;
+        var resumeBtn = root.Find("ResumeButton")?.GetComponent<UnityEngine.UI.Button>();
         if (resumeBtn != null) resumeBtn.onClick.AddListener(Resume);
 
-        var controlsBtn = transform.Find("ControlsButton")?.GetComponent<UnityEngine.UI.Button>();
+        var controlsBtn = root.Find("ControlsButton")?.GetComponent<UnityEngine.UI.Button>();
         if (controlsBtn != null) controlsBtn.onClick.AddListener(ShowControls);
 
-        var settingsBtn = transform.Find("SettingsButton")?.GetComponent<UnityEngine.UI.Button>();
+        var settingsBtn = root.Find("SettingsButton")?.GetComponent<UnityEngine.UI.Button>();
         if (settingsBtn != null) settingsBtn.onClick.AddListener(OpenSettings);
 
-        var menuBtn = transform.Find("MenuButton")?.GetComponent<UnityEngine.UI.Button>();
+        var menuBtn = root.Find("MenuButton")?.GetComponent<UnityEngine.UI.Button>();
         if (menuBtn != null) menuBtn.onClick.AddListener(ShowConfirm);
 
-        var controlsBackBtn = transform.Find("ControlsPanel/ControlsBackBtn")?.GetComponent<UnityEngine.UI.Button>();
+        var controlsBackBtn = root.Find("ControlsPanel/ControlsBackBtn")?.GetComponent<UnityEngine.UI.Button>();
         if (controlsBackBtn != null) controlsBackBtn.onClick.AddListener(HideControls);
 
-        var yesBtn = transform.Find("ConfirmPanel/YesBtn")?.GetComponent<UnityEngine.UI.Button>();
+        var yesBtn = root.Find("ConfirmPanel/YesBtn")?.GetComponent<UnityEngine.UI.Button>();
         if (yesBtn != null) yesBtn.onClick.AddListener(GoToMenu);
 
-        var noBtn = transform.Find("ConfirmPanel/NoBtn")?.GetComponent<UnityEngine.UI.Button>();
+        var noBtn = root.Find("ConfirmPanel/NoBtn")?.GetComponent<UnityEngine.UI.Button>();
         if (noBtn != null) noBtn.onClick.AddListener(HideConfirm);
     }
 
